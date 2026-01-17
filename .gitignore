@@ -8,3 +8,6 @@ bower_components/
 .env.*
 !.env.example
 !.env.template
+
+#package-lock
+package-lock.json

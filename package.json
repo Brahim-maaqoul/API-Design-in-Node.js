@@ -1,11 +1,23 @@
 {
-  "name": "api-design-in-node.js",
-  "version": "0.0.0",
-  "private": true,
+  "name": "api-design-v5",
+  "version": "1.0.0",
+  "description": "Habit Tracker API for Node.js course",
+  "main": "src/index.ts",
+  "type": "module",
   "scripts": {
+    "dev": "tsx watch src/index.ts",
     "start": "node src/index.ts",
-    "dev": "node --watch src/index.ts"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
+  "keywords": [
+    "habit-tracker",
+    "api",
+    "nodejs",
+    "express",
+    "drizzle"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
