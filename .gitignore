@@ -1,0 +1,10 @@
+# Dependencies
+node_modules/
+jspm_packages/
+bower_components/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+!.env.template
