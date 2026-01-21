@@ -1,18 +1,18 @@
-import { drizzle } from "drizzle-orm/node-postgres";
-import { Pool } from "pg"; 
-import * as schema from "./schema.ts"
-import { env, isProd } from "../../env.ts"
-import { remember } from "@epic-web/remember";
+import { drizzle } from 'drizzle-orm/node-postgres'
+import { Pool } from 'pg'
+import * as schema from './schema.ts'
+import { env, isProd } from '../../env.ts'
+import { remember } from '@epic-web/remember'
 
 const createPool = () => {
     return new Pool({
-        conncetionString: env.DATABASE_URL
+        connectionString: env.DATABASE_URL,
     })
 }
 
 let client
 
-if (isProd()){
+if (isProd()) {
     client = createPool()
 } else {
     client = remember('dbPool', () => createPool())
