@@ -1,23 +1,27 @@
 import type { Request, Response } from 'express'
 import bcrypt from 'bcrypt'
-import { db } from '../db/connection.ts'
-import { users, type NewUser, type User } from '../db/schema.ts'
 import { generateToken } from '../utils/jwt.ts'
-import { comparePasswords, hashPassword } from '../utils/passwords.ts'
+import { db } from '../db/connection.ts'
+import { users } from '../db/schema.ts'
 import { eq } from 'drizzle-orm'
 
-export const register = async (
-  req: Request<any, any, NewUser>,
-  res: Response
-) => {
+export const register = async (req: Request, res: Response) => {
   try {
-    const hashedPassword = await hashPassword(req.body.password)
+    const { email, username, password, firstName, lastName } = req.body
 
-    const [user] = await db
+    // Hash password
+    const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS || '12')
+    const hashedPassword = await bcrypt.hash(password, saltRounds)
+
+    // Create user
+    const [newUser] = await db
       .insert(users)
       .values({
-        ...req.body,
+        email,
+        username,
         password: hashedPassword,
+        firstName,
+        lastName,
       })
       .returning({
         id: users.id,
@@ -28,19 +32,20 @@ export const register = async (
         createdAt: users.createdAt,
       })
 
+    // Generate JWT
     const token = await generateToken({
-      id: user.id,
-      email: user.email,
-      username: user.username,
+      id: newUser.id,
+      email: newUser.email,
+      username: newUser.username,
     })
 
-    return res.status(201).json({
-      message: 'User created',
-      user,
+    res.status(201).json({
+      message: 'User created successfully',
+      user: newUser,
       token,
     })
-  } catch (e) {
-    console.error('Registration error', e)
+  } catch (error) {
+    console.error('Registration error:', error)
     res.status(500).json({ error: 'Failed to create user' })
   }
 }
@@ -48,42 +53,41 @@ export const register = async (
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body
-    const user = await db.query.users.findFirst({
-      where: eq(users.email, email),
-    })
+
+    // Find user
+    const [user] = await db.select().from(users).where(eq(users.email, email))
 
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' })
     }
 
-    const isValidatedPassword = await comparePasswords(password, user.password)
+    // Verify password
+    const isValidPassword = await bcrypt.compare(password, user.password)
 
-    if (!isValidatedPassword) {
+    if (!isValidPassword) {
       return res.status(401).json({ error: 'Invalid credentials' })
     }
 
+    // Generate JWT
     const token = await generateToken({
       id: user.id,
       email: user.email,
       username: user.username,
     })
 
-    return res
-      .json({
-        message: 'Login success',
-        user: {
-          id: user.id,
-          email: user.email,
-          username: user.username,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          createdAt: user.createdAt,
-        },
-        token,
-      })
-      .status(201)
-  } catch (e) {
-    console.error('Loging error', e)
+    res.json({
+      message: 'Login successful',
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+      token,
+    })
+  } catch (error) {
+    console.error('Login error:', error)
     res.status(500).json({ error: 'Failed to login' })
   }
 }

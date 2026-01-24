@@ -1,34 +1,42 @@
+import { env, isDev, isTest } from '../env.ts'
 import express from 'express'
+import cors from 'cors'
+import helmet from 'helmet'
 import authRoutes from './routes/authRoutes.ts'
 import habitRoutes from './routes/habitRoutes.ts'
 import userRoutes from './routes/userRoutes.ts'
-import cors from 'cors'
 import morgan from 'morgan'
-import helmet from 'helmet'
-import { skip } from 'node:test'
-import { isTest } from '../env.ts'
 
 const app = express()
+
 app.use(helmet())
-app.use(cors())
+// app.use(
+//   cors({
+//     origin: env.CORS_ORIGIN,
+//     credentials: true,
+//   })
+// )
+
 app.use(express.json())
-app.use(express.urlencoded({extended: true}))
-app.use(morgan('dev', {
-    skip: () => isTest()
-}))
-
+app.use(express.urlencoded({ extended: true }))
+app.use(
+  morgan('dev', {
+    skip: () => isTest(),
+  })
+)
+// Health check endpoint
 app.get('/health', (req, res) => {
-    res.json({message: 'hello'}).status(200)
+  res.status(200).json({
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    service: 'Habit Tracker API',
+  })
 })
 
-app.post('/cake/:name/:id', (req, res) => {
-    res.send(req.params.name)
-})
-
-
+// Routes
 app.use('/api/auth', authRoutes)
-app.use('/api/users', userRoutes)
 app.use('/api/habits', habitRoutes)
+app.use('/api/users', userRoutes)
 
 export { app }
 
