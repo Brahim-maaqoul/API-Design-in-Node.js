@@ -7,7 +7,7 @@ const router = Router()
 
 // Validation schemas
 const registerSchema = z.object({
-  email: z.string().email('Invalid email format'),
+  email: z.email('Invalid email format'),
   username: z
     .string()
     .min(3, 'Username must be at least 3 characters')
@@ -18,7 +18,7 @@ const registerSchema = z.object({
 })
 
 const loginSchema = z.object({
-  email: z.string().email('Invalid email format'),
+  email: z.email('Invalid email format'),
   password: z.string().min(1, 'Password is required'),
 })
 
