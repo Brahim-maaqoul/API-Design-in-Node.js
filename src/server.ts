@@ -38,6 +38,31 @@ app.use('/api/auth', authRoutes)
 app.use('/api/habits', habitRoutes)
 app.use('/api/users', userRoutes)
 
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    error: 'Route not found',
+    path: req.originalUrl,
+  })
+})
+
+// Global error handler
+app.use(
+  (
+    err: Error,
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    console.error(err.stack)
+    res.status(500).json({
+      error: 'Something went wrong!',
+      ...(isDev() && { details: err.message }),
+    })
+  }
+)
+
 export { app }
 
 export default app
